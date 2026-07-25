@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+    body {
+        font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+        color: #1f2937;
+        margin: 20px;
+        line-height: 1.5;
+    }
+    .header {
+        border-bottom: 2px solid #8b5cf6;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+    .title {
+        font-size: 24px;
+        font-weight: bold;
+        color: #6d28d9;
+    }
+    .meta {
+        font-size: 12px;
+        color: #6b7280;
+    }
+    .section-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: #1e3a8a;
+        margin-top: 20px;
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 5px;
+    }
+    .stats {
+        background-color: #f5f3ff;
+        border-radius: 4px;
+        padding: 15px;
+        margin-bottom: 20px;
+        font-size: 14px;
+    }
+    .stats strong {
+        color: #6d28d9;
+    }
+    .skill-badge {
+        display: inline-block;
+        padding: 3px 8px;
+        margin: 4px;
+        border-radius: 4px;
+        font-size: 12px;
+    }
+    .skill-badge.validated {
+        background-color: #dcfce7;
+        color: #15803d;
+        border: 1px solid #bbf7d0;
+    }
+    .skill-badge.unvalidated {
+        background-color: #fee2e2;
+        color: #b91c1c;
+        border: 1px solid #fecaca;
+    }
+    .project-list {
+        font-size: 12px;
+        color: #4b5563;
+        margin-left: 10px;
+        margin-top: 2px;
+    }
+</style>
+</head>
+<body>
+    <div class="header">
+        <div class="title">Skill Validation Report</div>
+        <div class="meta">Generated on: {{ timestamp | format_date }}</div>
+    </div>
+
+    <div class="stats">
+        <strong>Total Skills Extracted:</strong> {{ total_skills }}<br>
+        <strong>Validated Skills (with project/experience evidence):</strong> {{ validated_count }}<br>
+        <strong>Validation Rate:</strong> {{ (validation_pct | default(0.0)) | round(1) }}%
+    </div>
+
+    <div class="section-title">Validated Skills</div>
+    <p style="font-size: 13px; color: #4b5563;">These skills have clear supporting context in your experience bullet points or projects:</p>
+    <div style="margin-top: 10px; margin-bottom: 25px;">
+        {% for item in validated_skills %}
+        <div style="margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed #e5e7eb;">
+            <span class="skill-badge validated">{{ item.skill }}</span>
+            {% if item.projects %}
+            <div class="project-list">
+                <strong>Evidence:</strong>
+                <ul>
+                    {% for proj in item.projects %}
+                    <li>{{ proj }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if unvalidated_skills %}
+    <div class="section-title">Unvalidated Skills</div>
+    <p style="font-size: 13px; color: #4b5563;">These skills were listed in your skills section but lack description/context in your experience section (high risk for automated screeners):</p>
+    <div style="margin-top: 10px;">
+        {% for skill in unvalidated_skills %}
+        <span class="skill-badge unvalidated">{{ skill }}</span>
+        {% endfor %}
+    </div>
+    {% endif %}
+</body>
+</html>

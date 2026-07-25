@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+    body {
+        font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+        color: #1f2937;
+        margin: 20px;
+        line-height: 1.5;
+    }
+    .header {
+        border-bottom: 2px solid #3b82f6;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+    .title {
+        font-size: 24px;
+        font-weight: bold;
+        color: #1e3a8a;
+    }
+    .meta {
+        font-size: 12px;
+        color: #6b7280;
+    }
+    .score-box {
+        background-color: #f3f4f6;
+        border-left: 5px solid {{ score_color }};
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    .score-title {
+        font-size: 18px;
+        font-weight: bold;
+    }
+    .score-value {
+        font-size: 32px;
+        font-weight: bold;
+        color: {{ score_color }};
+    }
+    .section-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: #1e3a8a;
+        margin-top: 20px;
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 5px;
+    }
+    .progress-bar-container {
+        background-color: #e5e7eb;
+        border-radius: 4px;
+        height: 12px;
+        width: 100%;
+        margin-bottom: 15px;
+    }
+    .progress-bar {
+        background-color: #3b82f6;
+        height: 100%;
+        border-radius: 4px;
+    }
+    .grid {
+        display: table;
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    .grid-row {
+        display: table-row;
+    }
+    .grid-cell {
+        display: table-cell;
+        padding: 5px 10px;
+    }
+</style>
+</head>
+<body>
+    <div class="header">
+        <div class="title">ATS Resume Analysis Summary</div>
+        <div class="meta">Generated on: {{ timestamp | format_date }}</div>
+    </div>
+    
+    <div class="score-box">
+        <div class="score-title">Overall ATS Score</div>
+        <div class="score-value">{{ overall_score }} / 100</div>
+        <p>{{ interpretation }}</p>
+    </div>
+    
+    <div class="section-title">Component Scores Breakdown</div>
+    <div style="margin-top: 15px;">
+        <div class="grid">
+            <div class="grid-row">
+                <div class="grid-cell" style="width: 40%;"><strong>Formatting:</strong> {{ component_scores.formatting }} / 20</div>
+                <div class="grid-cell">
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" style="width: {{ component_pct.formatting }}%; background-color: #f59e0b;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="grid-row">
+                <div class="grid-cell"><strong>Keywords & Skills:</strong> {{ component_scores.keywords }} / 25</div>
+                <div class="grid-cell">
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" style="width: {{ component_pct.keywords }}%; background-color: #3b82f6;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="grid-row">
+                <div class="grid-cell"><strong>Content Quality:</strong> {{ component_scores.content }} / 25</div>
+                <div class="grid-cell">
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" style="width: {{ component_pct.content }}%; background-color: #10b981;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="grid-row">
+                <div class="grid-cell"><strong>Skill Validation:</strong> {{ component_scores.skill_validation }} / 15</div>
+                <div class="grid-cell">
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" style="width: {{ component_pct.skill_validation }}%; background-color: #ef4444;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="grid-row">
+                <div class="grid-cell"><strong>ATS Compatibility:</strong> {{ component_scores.ats_compatibility }} / 15</div>
+                <div class="grid-cell">
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" style="width: {{ component_pct.ats_compatibility }}%; background-color: #8b5cf6;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if strengths %}
+    <div class="section-title">Key Strengths</div>
+    <ul>
+        {% for strength in strengths %}
+        <li>{{ strength }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</body>
+</html>

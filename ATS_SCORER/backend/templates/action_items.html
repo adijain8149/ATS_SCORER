@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+    body {
+        font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+        color: #1f2937;
+        margin: 20px;
+        line-height: 1.5;
+    }
+    .header {
+        border-bottom: 2px solid #ef4444;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+    .title {
+        font-size: 24px;
+        font-weight: bold;
+        color: #b91c1c;
+    }
+    .meta {
+        font-size: 12px;
+        color: #6b7280;
+    }
+    .section-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: #1e3a8a;
+        margin-top: 20px;
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 5px;
+    }
+    .feedback-list {
+        margin-top: 15px;
+    }
+    .feedback-item {
+        margin-bottom: 15px;
+        padding: 10px;
+        border-radius: 4px;
+    }
+    .feedback-item.high {
+        background-color: #fef2f2;
+        border-left: 4px solid #ef4444;
+    }
+    .feedback-item.medium {
+        background-color: #fffbeb;
+        border-left: 4px solid #f59e0b;
+    }
+    .feedback-item.low {
+        background-color: #f0fdf4;
+        border-left: 4px solid #10b981;
+    }
+    .feedback-msg {
+        font-weight: bold;
+    }
+    .feedback-rec {
+        margin-top: 5px;
+        font-size: 13px;
+        color: #4b5563;
+    }
+</style>
+</head>
+<body>
+    <div class="header">
+        <div class="title">Action Items & Improvements</div>
+        <div class="meta">Generated on: {{ timestamp | format_date }}</div>
+    </div>
+
+    {% if high_priority %}
+    <div class="section-title" style="color: #b91c1c;">⚠️ High Priority Improvements</div>
+    <div class="feedback-list">
+        {% for fb in high_priority %}
+        <div class="feedback-item high">
+            <div class="feedback-msg">[{{ fb.ats_impact }}] {{ fb.issue_title }}</div>
+            <div class="feedback-rec"><strong>Recommendation:</strong> {{ fb.how_to_fix }}</div>
+            {% if fb.action_items %}
+            <ul style="font-size: 13px; color: #4b5563; margin-top: 5px;">
+                {% for item in fb.action_items %}
+                <li>{{ item }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if medium_priority %}
+    <div class="section-title" style="color: #b45309; margin-top: 25px;">⚡ Moderate Priority Improvements</div>
+    <div class="feedback-list">
+        {% for fb in medium_priority %}
+        <div class="feedback-item medium">
+            <div class="feedback-msg">[{{ fb.ats_impact }}] {{ fb.issue_title }}</div>
+            <div class="feedback-rec"><strong>Recommendation:</strong> {{ fb.how_to_fix }}</div>
+            {% if fb.action_items %}
+            <ul style="font-size: 13px; color: #4b5563; margin-top: 5px;">
+                {% for item in fb.action_items %}
+                <li>{{ item }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if low_priority %}
+    <div class="section-title" style="color: #047857; margin-top: 25px;">✨ Low Priority / Best Practices</div>
+    <div class="feedback-list">
+        {% for fb in low_priority %}
+        <div class="feedback-item low">
+            <div class="feedback-msg">[{{ fb.ats_impact }}] {{ fb.issue_title }}</div>
+            <div class="feedback-rec"><strong>Recommendation:</strong> {{ fb.how_to_fix }}</div>
+            {% if fb.action_items %}
+            <ul style="font-size: 13px; color: #4b5563; margin-top: 5px;">
+                {% for item in fb.action_items %}
+                <li>{{ item }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</body>
+</html>

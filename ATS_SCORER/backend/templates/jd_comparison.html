@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+    body {
+        font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+        color: #1f2937;
+        margin: 20px;
+        line-height: 1.5;
+    }
+    .header {
+        border-bottom: 2px solid #10b981;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+    .title {
+        font-size: 24px;
+        font-weight: bold;
+        color: #047857;
+    }
+    .meta {
+        font-size: 12px;
+        color: #6b7280;
+    }
+    .section-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: #1e3a8a;
+        margin-top: 20px;
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 5px;
+    }
+    .match-box {
+        background-color: #ecfdf5;
+        border-left: 5px solid #10b981;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    .match-score {
+        font-size: 32px;
+        font-weight: bold;
+        color: #047857;
+    }
+    .keyword-section {
+        margin-bottom: 20px;
+    }
+    .badge {
+        display: inline-block;
+        padding: 3px 8px;
+        margin: 4px;
+        border-radius: 4px;
+        font-size: 12px;
+    }
+    .badge.match {
+        background-color: #d1fae5;
+        color: #065f46;
+        border: 1px solid #a7f3d0;
+    }
+    .badge.missing {
+        background-color: #ffedd5;
+        color: #9a3412;
+        border: 1px solid #fed7aa;
+    }
+</style>
+</head>
+<body>
+    <div class="header">
+        <div class="title">Job Description Comparison Report</div>
+        <div class="meta">Generated on: {{ timestamp | format_date }}</div>
+    </div>
+
+    {% if jd_analysis %}
+    <div class="match-box">
+        <div style="font-size: 16px; font-weight: bold; color: #065f46;">Job Description Match Score</div>
+        <div class="match-score">{{ (jd_analysis.match_percentage | default(0)) | round(0) }}%</div>
+        <p style="font-size: 14px; margin-top: 5px; color: #374151;">Overall semantic similarity match with job description: {{ ((jd_analysis.semantic_similarity | default(0)) * 100) | round(1) }}%</p>
+    </div>
+
+    <div class="section-title">Keywords Match Overview</div>
+    <div class="keyword-section">
+        <strong>Matching Keywords found:</strong>
+        <div style="margin-top: 5px; margin-bottom: 15px;">
+            {% for kw in jd_analysis.matched_keywords %}
+            <span class="badge match">{{ kw }}</span>
+            {% else %}
+            <span style="font-size: 13px; color: #6b7280;">No matching keywords found.</span>
+            {% endfor %}
+        </div>
+
+        <strong>Missing Job Description Keywords:</strong>
+        <div style="margin-top: 5px; margin-bottom: 15px;">
+            {% for kw in jd_analysis.missing_keywords %}
+            <span class="badge missing">{{ kw }}</span>
+            {% else %}
+            <span style="font-size: 13px; color: #6b7280;">No missing keywords! Your resume matches all key terms.</span>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% if jd_analysis.skills_gap %}
+    <div class="section-title">Skills Gap & Tailoring Recommendations</div>
+    <p style="font-size: 13px; color: #4b5563;">Consider adding bullet points or projects demonstrating experience with the following missing skills/topics:</p>
+    <ul>
+        {% for skill in jd_analysis.skills_gap %}
+        <li style="margin-bottom: 8px; font-size: 14px;"><strong>{{ skill }}</strong> — mention how you applied this skill in a past role or personal project.</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% else %}
+    <div style="padding: 20px; text-align: center; color: #6b7280; border: 1px dashed #d1d5db; border-radius: 4px;">
+        No Job Description comparison was selected for this analysis.
+    </div>
+    {% endif %}
+</body>
+</html>
