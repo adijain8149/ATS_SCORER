@@ -74,11 +74,26 @@ def get_supabase_anon_key() -> str:
 SUPABASE_URL = get_supabase_url()
 SUPABASE_ANON_KEY = get_supabase_anon_key()
 
-OAUTH_REDIRECT_URL = (
-    os.getenv('AUTH_REDIRECT_URL', '').strip(" '\"\t\r\n")
-    or _secret('redirect_uri', 'google_oauth')
-    or 'http://localhost:8501'
-)
+def get_oauth_redirect_url() -> str:
+    url = (
+        os.getenv('AUTH_REDIRECT_URL', '').strip(" '\"\t\r\n")
+        or _secret('redirect_uri', 'google_oauth')
+        or _secret('redirect_url', 'google_oauth')
+        or _secret('REDIRECT_URI')
+    )
+    if url and url != 'http://localhost:8501':
+        return url
+
+    try:
+        if hasattr(st, "context") and hasattr(st.context, "headers"):
+            headers = st.context.headers
+            host = headers.get("host") or headers.get("Host") or ""
+            if host and "streamlit.app" in host:
+                return f"https://{host}"
+    except Exception:
+        pass
+
+    return url or 'http://localhost:8501'
 
 
 def _missing_config() -> str | None:
@@ -177,7 +192,7 @@ def google_oauth_url() -> Dict[str, Any]:
             return {'error': 'Supabase client not available'}
         resp = _with_retries(client.auth.sign_in_with_oauth, {
             'provider': 'google',
-            'options': {'redirect_to': OAUTH_REDIRECT_URL},
+            'options': {'redirect_to': get_oauth_redirect_url()},
         })
         # Backup code_verifier to disk in case of server restart during redirect
         try:
@@ -221,7 +236,7 @@ def exchange_code_for_session(auth_code: str) -> Dict[str, Any]:
         resp = _with_retries(client.auth.exchange_code_for_session, {
             'auth_code': auth_code,
             'code_verifier': code_verifier,
-            'redirect_to': OAUTH_REDIRECT_URL,
+            'redirect_to': get_oauth_redirect_url(),
         })
         if not resp.session or not resp.user:
             return {'error': 'OAuth exchange returned no session'}
