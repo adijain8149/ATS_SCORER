@@ -211,11 +211,12 @@ with st.sidebar:
                     unsafe_allow_html=True)
 
         # Cache OAuth URL in session state to avoid hitting Supabase rate limits.
-        # Only fetch once per session; it stays valid for the session duration.
-        if not st.session_state.get("cached_oauth"):
-            st.session_state.cached_oauth = supabase_client.google_oauth_url() or {}
+        # Only fetch once per session; it stays valid for the session duration (retry if cached error).
+        oauth = st.session_state.get("cached_oauth")
+        if not oauth or (isinstance(oauth, dict) and "error" in oauth):
+            oauth = supabase_client.google_oauth_url() or {}
+            st.session_state.cached_oauth = oauth
 
-        oauth = st.session_state.get("cached_oauth") or {}
         if isinstance(oauth, dict) and "error" in oauth:
             st.caption(f"Google sign-in unavailable: {oauth['error']}")
         elif isinstance(oauth, dict) and "url" in oauth:
