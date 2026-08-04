@@ -15,31 +15,64 @@ _PROJECT_ROOT = _FRONTEND_DIR.parent                  # D:\\ATS Score
 
 try:
     from dotenv import load_dotenv
+    load_dotenv()
     load_dotenv(_PROJECT_ROOT / '.env')
+    load_dotenv(_FRONTEND_DIR / '.env')
 except ImportError:
     pass
 
 
 def _secret(key: str, section: str = 'supabase') -> str:
-    """Read from env first, then fall back to st.secrets[section][key]."""
+    """Read from env first, then fall back to st.secrets[section][key] or top-level st.secrets[key]."""
     val = os.getenv(key, '')
     if val:
         return val.strip(" '\"\t\r\n")
 
-    # Safe check if secrets.toml exists before accessing st.secrets
-    user_secrets = Path.home() / ".streamlit" / "secrets.toml"
-    local_secrets = _FRONTEND_DIR / ".streamlit" / "secrets.toml"
+    try:
+        if hasattr(st, "secrets"):
+            if section in st.secrets and key in st.secrets[section]:
+                return str(st.secrets[section][key]).strip(" '\"\t\r\n")
+            if key in st.secrets:
+                return str(st.secrets[key]).strip(" '\"\t\r\n")
+    except Exception:
+        pass
 
-    if user_secrets.exists() or local_secrets.exists():
-        try:
-            val = st.secrets[section][key]
-            return str(val).strip(" '\"\t\r\n")
-        except (KeyError, FileNotFoundError, AttributeError):
-            pass
+    for secrets_path in [
+        _FRONTEND_DIR / ".streamlit" / "secrets.toml",
+        _PROJECT_ROOT / ".streamlit" / "secrets.toml",
+        Path.home() / ".streamlit" / "secrets.toml",
+    ]:
+        if secrets_path.exists():
+            try:
+                import tomllib
+            except ImportError:
+                try:
+                    import tomli as tomllib
+                except ImportError:
+                    tomllib = None
+            if tomllib:
+                try:
+                    data = tomllib.loads(secrets_path.read_text(encoding="utf-8"))
+                    if section in data and key in data[section]:
+                        return str(data[section][key]).strip(" '\"\t\r\n")
+                    if key in data:
+                        return str(data[key]).strip(" '\"\t\r\n")
+                except Exception:
+                    pass
+
     return ''
 
-SUPABASE_URL = _secret('SUPABASE_URL')
-SUPABASE_ANON_KEY = _secret('SUPABASE_ANON_KEY')
+
+def get_supabase_url() -> str:
+    return _secret('SUPABASE_URL')
+
+
+def get_supabase_anon_key() -> str:
+    return _secret('SUPABASE_ANON_KEY')
+
+
+SUPABASE_URL = get_supabase_url()
+SUPABASE_ANON_KEY = get_supabase_anon_key()
 
 OAUTH_REDIRECT_URL = (
     os.getenv('AUTH_REDIRECT_URL', '').strip(" '\"\t\r\n")
@@ -49,7 +82,9 @@ OAUTH_REDIRECT_URL = (
 
 
 def _missing_config() -> str | None:
-    if not SUPABASE_URL or not SUPABASE_ANON_KEY:
+    url = get_supabase_url()
+    key = get_supabase_anon_key()
+    if not url or not key:
         return 'Supabase is not configured — set SUPABASE_URL and SUPABASE_ANON_KEY in .env or .streamlit/secrets.toml'
     return None
 
@@ -59,7 +94,7 @@ def get_client() -> Client | None:
     """Cached singleton — preserves PKCE state across Streamlit reruns."""
     if _missing_config():
         return None
-    return create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
+    return create_client(get_supabase_url(), get_supabase_anon_key())
 
 
 def _session_dict(session, user) -> Dict[str, Any]:

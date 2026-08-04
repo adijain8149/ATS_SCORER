@@ -19,15 +19,36 @@ def _backend_url() -> str:
     if url:
         return url
 
-    # Safe check if secrets.toml exists before accessing st.secrets
-    user_secrets = Path.home() / ".streamlit" / "secrets.toml"
-    local_secrets = _FRONTEND_DIR / ".streamlit" / "secrets.toml"
+    try:
+        if hasattr(st, "secrets"):
+            if "backend" in st.secrets and "url" in st.secrets["backend"]:
+                return str(st.secrets["backend"]["url"]).strip(" '\"\t\r\n")
+            if "BACKEND_URL" in st.secrets:
+                return str(st.secrets["BACKEND_URL"]).strip(" '\"\t\r\n")
+    except Exception:
+        pass
 
-    if user_secrets.exists() or local_secrets.exists():
-        try:
-            return st.secrets["backend"]["url"]
-        except (KeyError, FileNotFoundError, AttributeError):
-            pass
+    for secrets_path in [
+        _FRONTEND_DIR / ".streamlit" / "secrets.toml",
+        Path.home() / ".streamlit" / "secrets.toml",
+    ]:
+        if secrets_path.exists():
+            try:
+                import tomllib
+            except ImportError:
+                try:
+                    import tomli as tomllib
+                except ImportError:
+                    tomllib = None
+            if tomllib:
+                try:
+                    data = tomllib.loads(secrets_path.read_text(encoding="utf-8"))
+                    if "backend" in data and "url" in data["backend"]:
+                        return str(data["backend"]["url"]).strip(" '\"\t\r\n")
+                    if "BACKEND_URL" in data:
+                        return str(data["BACKEND_URL"]).strip(" '\"\t\r\n")
+                except Exception:
+                    pass
 
     return DEFAULT_BACKEND_URL
 

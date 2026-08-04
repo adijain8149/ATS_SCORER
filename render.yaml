@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: ats-scorer-backend
+    env: docker
+    dockerfilePath: ./ATS_SCORER/Dockerfile
+    dockerContext: ./ATS_SCORER
+    plan: free
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_JWT_SECRET
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
